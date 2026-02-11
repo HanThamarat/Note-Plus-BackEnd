@@ -11,7 +11,6 @@ import (
 	"github.com/HanThamarat/Note-Plus-BackEnd/internal/usecase"
 	"github.com/HanThamarat/Note-Plus-BackEnd/pkg/database"
 	pkg "github.com/HanThamarat/Note-Plus-BackEnd/pkg/load-env"
-	"github.com/HanThamarat/Note-Plus-BackEnd/pkg/responses"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -21,6 +20,7 @@ func main() {
 
 	err := db.AutoMigrate(
 		&domain.User{},
+		&domain.Organizations{},
 	);
 
 	if err != nil {
@@ -37,17 +37,19 @@ func main() {
 	authUc 		:= usecase.NewAuthUsecase(authRepo);
 	authHdl		:= handler.NewAuthHandler(authUc);
 
+	//org
+	orgRepo     := repository.NewGormOrgRepository(db);
+	orgUc 		:= usecase.NewOrgUsecase(orgRepo);
+	orgHdl 		:= handler.NewOrgHandler(orgUc);
+
 	app := fiber.New();
 
 	router.SetupRoutes(
 		app, 
 		userHandler,
 		authHdl,
+		orgHdl,
 	);
-
-	app.Get("", func (c *fiber.Ctx) error {
-		return responses.SetResponse(c, fiber.StatusOK, "Server is runing", nil); 
-	});
 
 	log.Fatal(app.Listen(os.Getenv("Port")));
 }

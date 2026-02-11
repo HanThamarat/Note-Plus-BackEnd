@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"time"
 
@@ -22,8 +21,6 @@ func NewGormAuthRepository(db *gorm.DB) domain.AuthRepository {
 
 func (r *gormAuthRepository) CreateCredentialAuth(authDTO domain.AuthDTO) (*domain.AuthEntity, error) {
 	var user domain.User;
-	
-	fmt.Println(authDTO.Username);
 
 	errs := r.db.Where("(email = ? OR username = ?) AND status = ?", authDTO.Username, authDTO.Username, true).First(&user).Error;
 	if errs != nil {
@@ -37,6 +34,7 @@ func (r *gormAuthRepository) CreateCredentialAuth(authDTO domain.AuthDTO) (*doma
 	}
 
 	claims := jwt.MapClaims{
+		"userId": user.ID,
 		"name": user.Name,
 		"email": user.Email,
 		"status": user.Status,
