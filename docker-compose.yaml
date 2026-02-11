@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  postgreSql:
+    restart: always
+    platform: linux/x86_64
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    volumes:
+      - .docker/postgreSql:/var/lib/postgresql
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=noteplus
+    networks:
+      - server
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  server:
+    restart: always
+    platform: linux/x86_64
+    build:
+      context: ./
+      dockerfile: ${DOCKERFILE:-Dockerfile.dev}
+    command: nodemon --watch . --ext go --exec go run . --signal SIGTERM 
+    ports:
+      - 3000:3000
+    volumes:
+      - ./:/app
+    networks:
+      - server
+
+networks:
+  server:
+    driver: bridge
