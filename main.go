@@ -27,15 +27,22 @@ func main() {
 		panic("Could not migrate database: " + err.Error());
 	}
 
+	// user manangement
 	userRepo 	:= repository.NewGormUserRepository(db);
 	userUsecase := usecase.NewUserUsecase(userRepo);
 	userHandler := handler.NewUserHandler(userUsecase);
+
+	// auth
+	authRepo 	:= repository.NewGormAuthRepository(db);
+	authUc 		:= usecase.NewAuthUsecase(authRepo);
+	authHdl		:= handler.NewAuthHandler(authUc);
 
 	app := fiber.New();
 
 	router.SetupRoutes(
 		app, 
 		userHandler,
+		authHdl,
 	);
 
 	app.Get("", func (c *fiber.Ctx) error {
