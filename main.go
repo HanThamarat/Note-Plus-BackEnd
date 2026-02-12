@@ -10,9 +10,13 @@ import (
 	"github.com/HanThamarat/Note-Plus-BackEnd/internal/router"
 	"github.com/HanThamarat/Note-Plus-BackEnd/internal/usecase"
 	"github.com/HanThamarat/Note-Plus-BackEnd/pkg/database"
+	initial "github.com/HanThamarat/Note-Plus-BackEnd/pkg/initialize"
 	pkg "github.com/HanThamarat/Note-Plus-BackEnd/pkg/load-env"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
+
 
 func main() {
 	pkg.LoadEnv();
@@ -21,11 +25,16 @@ func main() {
 	err := db.AutoMigrate(
 		&domain.User{},
 		&domain.Organizations{},
+		&domain.Role{},
+		&domain.Member{},
 	);
 
 	if err != nil {
 		panic("Could not migrate database: " + err.Error());
 	}
+
+	initial.UserInit(db);
+	initial.RoleInit(db);
 
 	// user manangement
 	userRepo 	:= repository.NewGormUserRepository(db);
@@ -43,6 +52,13 @@ func main() {
 	orgHdl 		:= handler.NewOrgHandler(orgUc);
 
 	app := fiber.New();
+	app.Use(logger.New());
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: os.Getenv("CORS_URL"),
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, HEAD, PUT, DELETE, PATCH",
+		AllowCredentials: true,
+	}));
 
 	router.SetupRoutes(
 		app, 
