@@ -17,7 +17,8 @@ type User struct {
   	UpdatedAt 		time.Time			`gorm:"column:updated_at;" json:"updated_at"`
 	DeletedAt 		gorm.DeletedAt		`gorm:"column:deleted_at;" json:"deleted_at"`
 
-	Organization 	[]Organizations		`gorm:"foreignKey:CreatedBy;references:ID" json:"credit_cards"`
+	Organization 	[]Organizations		`gorm:"foreignKey:CreatedBy;references:ID" json:"createdBy"`
+	Member			[]Member			`gorm:"foreignKey:userId;references:ID" json:"member"`
 }
 
 type UserDTO struct {

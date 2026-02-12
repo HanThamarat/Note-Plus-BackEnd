@@ -14,17 +14,33 @@ func NewGormOrgRepository(db *gorm.DB) domain.OrgRepository {
 }
 
 func (r *gormOrgRepository) CreateNewOrg(dto domain.OrgDTO) (*domain.Organizations, error) {
-	var org domain.Organizations;
+	var org 		domain.Organizations;
+	var member		domain.Member;
 
-	org.Name 		= dto.Name;
-	org.Description = dto.Description;
-	org.Status 		= dto.Status;
-	org.CreatedBy 	= *dto.UserId;
+	err := r.db.Transaction(func(tx *gorm.DB) error {
 
-	result := r.db.Create(&org).Joins("organizations");
+		org.Name 		= dto.Name;
+		org.Description = &dto.Description;
+		org.Status 		= dto.Status;
+		org.CreatedBy 	= *dto.UserId;
 
-	if result.Error != nil {
-		return  nil, result.Error;
+		if err := tx.Create(&org).Error; err != nil {
+			return err;
+		}
+
+		member.UserId = *dto.UserId;
+		member.OrgId = org.ID;
+		member.RoleId = 1;
+
+		if err := tx.Create(&member).Error; err != nil {
+			return err;
+		}
+
+		return nil;
+	});
+
+	if err != nil {
+		return  nil, err;
 	}
 
 	return &org, nil;
@@ -58,7 +74,7 @@ func (r *gormOrgRepository) UpdateOrg(orgId uint, dto domain.OrgDTO) (*domain.Or
 	org := domain.Organizations{ID: orgId}
 	result := r.db.Model(&org).Updates(domain.Organizations{
 		Name: dto.Name,
-		Description: dto.Description,
+		Description: &dto.Description,
 		Status: dto.Status,
 	});
 
