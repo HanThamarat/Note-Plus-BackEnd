@@ -23,7 +23,7 @@ func InitDB() *gorm.DB {
 	var dsn string;
 
 	if mode == "prod" {
-		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require TimeZone=Asia/Bangkok",
+		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require TimeZone=Asia/Bangkok prepare_threshold=0",
 		host, username, password, dbName, port);
 	} else {
 		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Bangkok",
