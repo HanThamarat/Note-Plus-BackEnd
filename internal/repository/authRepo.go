@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/HanThamarat/Note-Plus-BackEnd/internal/domain"
@@ -21,8 +22,8 @@ func NewGormAuthRepository(db *gorm.DB) domain.AuthRepository {
 
 func (r *gormAuthRepository) CreateCredentialAuth(authDTO domain.AuthDTO) (*domain.AuthEntity, error) {
 	var user domain.User;
-
-	errs := r.db.Where("(email = ? OR username = ?) AND status = ?", authDTO.Username, authDTO.Username, true).First(&user).Error;
+	
+	errs := r.db.Where("(LOWER(email) = ? OR LOWER(username) = ?) AND status = ?", strings.ToLower(authDTO.Username), strings.ToLower(authDTO.Username), true).First(&user).Error;
 	if errs != nil {
 		return nil, errors.New("This username or password not have in the system.");
 	}

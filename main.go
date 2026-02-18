@@ -46,10 +46,15 @@ func main() {
 	authUc 		:= usecase.NewAuthUsecase(authRepo);
 	authHdl		:= handler.NewAuthHandler(authUc);
 
-	//org
+	// org
 	orgRepo     := repository.NewGormOrgRepository(db);
 	orgUc 		:= usecase.NewOrgUsecase(orgRepo);
 	orgHdl 		:= handler.NewOrgHandler(orgUc);
+
+	// member
+	memberRepo	:= repository.NewGormMemberRepository(db);
+	memberUc	:= usecase.NewMemberUsecase(memberRepo);
+	memberHdl	:= handler.NewMemberHandler(memberUc);
 
 	app := fiber.New();
 	app.Use(logger.New());
@@ -65,6 +70,7 @@ func main() {
 		userHandler,
 		authHdl,
 		orgHdl,
+		memberHdl,
 	);
 
 	log.Fatal(app.Listen(os.Getenv("Port")));

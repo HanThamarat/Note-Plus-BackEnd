@@ -10,10 +10,11 @@ import (
 )
 
 func SetupRoutes(
-	app *fiber.App, 
-	userHdl *handler.UserHandler,
-	authHdl *handler.AuthHandler,
-	orgHdl 	*handler.OrgHandler,
+	app 		*fiber.App, 
+	userHdl 	*handler.UserHandler,
+	authHdl 	*handler.AuthHandler,
+	orgHdl 		*handler.OrgHandler,
+	memberHdl 	*handler.MemberHandler,
 ) {
 	app.Get("/", func (c *fiber.Ctx) error {
 		return responses.SetResponse(c, fiber.StatusOK, "Server is runing", nil); 
@@ -38,5 +39,9 @@ func SetupRoutes(
 	orgGruop.Get("/organization/:id", orgHdl.FindOrgById);
 	orgGruop.Put("/organization/:id", orgHdl.UpdateOrg);
 	orgGruop.Delete("/organization/:id", orgHdl.DeleteOrg);
-	
+
+	// member service
+	memberGroup := router.Group("/member_service");
+	memberGroup.Post("/member", memberHdl.CreateMember);
+	memberGroup.Get("/member/:id", memberHdl.FindOrgMember);
 }
