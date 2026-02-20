@@ -28,13 +28,17 @@ services:
     build:
       context: ./
       dockerfile: ${DOCKERFILE:-Dockerfile.dev}
-    command: nodemon --watch . --ext go --exec go run . --signal SIGTERM 
+    command: "air -c .air.toml"
     ports:
       - 3000:3000
     volumes:
       - ./:/app
     networks:
       - server
+    depends_on:
+      postgreSql:
+        condition: service_healthy
+        
 
 networks:
   server:
