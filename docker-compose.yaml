@@ -4,7 +4,7 @@ services:
   postgreSql:
     restart: always
     platform: linux/x86_64
-    image: postgres:latest
+    image: postgres:18-alpine3.22
     ports:
       - 5432:5432
     volumes:
