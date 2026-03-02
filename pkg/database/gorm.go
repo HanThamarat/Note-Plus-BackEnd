@@ -18,7 +18,7 @@ func InitDB() *gorm.DB {
 	dbName		:= os.Getenv("DATABASE_NAME");
 	port		:= os.Getenv("DATABASE_PORT");
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Bangkok",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require TimeZone=Asia/Bangkok",
 		host, username, password, dbName, port);
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
