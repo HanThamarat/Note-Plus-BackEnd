@@ -59,7 +59,7 @@ func main() {
 	app := fiber.New();
 	app.Use(logger.New());
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: os.Getenv("CORS_URL"),
+		AllowOrigins:  os.Getenv("CORS_URL"),
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 		AllowMethods: "GET, POST, HEAD, PUT, DELETE, PATCH",
 		AllowCredentials: true,
