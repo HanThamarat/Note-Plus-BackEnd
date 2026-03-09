@@ -26,8 +26,9 @@ services:
     restart: always
     platform: linux/x86_64
     build:
-      context: ./
+      context: ./API-RECEIVE/
       dockerfile: ${DOCKERFILE:-Dockerfile.dev}
+    working_dir: /app/API-RECEIVE
     command: "air -c .air.toml"
     ports:
       - 3000:3000
@@ -38,8 +39,51 @@ services:
     depends_on:
       postgreSql:
         condition: service_healthy
-        
+      rabbitmq:
+        condition: service_healthy
+
+  messagequeue-server:
+    restart: always
+    platform: linux/x86_64
+    build:
+      context: ./MESSAGE-QUEUE/
+      dockerfile: ${DOCKERFILE:-Dockerfile.dev}
+    working_dir: /app/MESSAGE-QUEUE
+    command: "air -c .air.toml"
+    ports:
+      - 3004:3004
+    volumes:
+      - ./:/app
+    networks:
+      - server
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "root"
+      RABBITMQ_DEFAULT_PASS: "root"
+    restart: unless-stopped
+    networks:
+      - server
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    volumes:
+      - rabbitmq_data:/data
 
 networks:
   server:
     driver: bridge
+
+volumes:
+  rabbitmq_data:
