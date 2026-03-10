@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -44,6 +45,35 @@ func (r *RabbitClient) Publish(queueName string, body []byte) error {
         ContentType: "text/plain",
         Body:        body,
     });
+}
+
+func (r *RabbitClient) Call(queueName string, body []byte) ([]byte, error) {
+    q, err := r.Channel.QueueDeclare("", false, true, true, false, nil)
+    if err != nil {
+        return nil, err
+    }
+
+    msgs, err := r.Channel.Consume(q.Name, "", true, false, false, false, nil)
+    if err != nil {
+        return nil, err
+    }
+
+    corrId := uuid.New().String();
+
+    err = r.Channel.Publish("", queueName, false, false, amqp.Publishing{
+        ContentType:   "application/json",
+        CorrelationId: corrId,
+        ReplyTo:       q.Name,
+        Body:          body,
+    })
+
+    for d := range msgs {
+        if d.CorrelationId == corrId {
+            return d.Body, nil
+        }
+    }
+
+    return nil, fmt.Errorf("failed to receive response")
 }
 
 func (r *RabbitClient) Close() error {

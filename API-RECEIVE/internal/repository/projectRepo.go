@@ -2,6 +2,7 @@ package repository
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/HanThamarat/Note-Plus-BackEnd/internal/domain"
@@ -27,6 +28,20 @@ func (r *projectRepository) CreateProject(dto domain.ProjectDTO) (*domain.Projec
     }
 
 	fmt.Printf("Usecase: Sending order %s to queue\n", dto.Name);
-	r.rabmq.Publish("project", body);
-    return nil, nil;
+	response, err := r.rabmq.Call("project", body);
+	if err != nil {
+        return nil, err;
+    }
+
+	var result domain.Project;
+	var message domain.MessageBodyDTO;
+	json.Unmarshal(response, &message);
+
+	if message.Status == false {
+		return nil, errors.New("Insert data to database failed.");
+	}
+
+	json.Unmarshal(message.Body, &result);
+	
+    return &result, nil;
 }
