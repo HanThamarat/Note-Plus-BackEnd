@@ -15,6 +15,7 @@ func SetupRoutes(
 	authHdl 	*handler.AuthHandler,
 	orgHdl 		*handler.OrgHandler,
 	memberHdl 	*handler.MemberHandler,
+	projectHdl 	*handler.ProjectHandler,
 ) {
 	app.Get("/", func (c *fiber.Ctx) error {
 		return responses.SetResponse(c, fiber.StatusOK, "Server is runing", nil); 
@@ -44,4 +45,8 @@ func SetupRoutes(
 	memberGroup := router.Group("/member_service");
 	memberGroup.Post("/member", memberHdl.CreateMember);
 	memberGroup.Get("/member/:id", memberHdl.FindOrgMember);
+
+	// project service
+	projectGroup := router.Group("/project_service");
+	projectGroup.Post("/project", projectHdl.CreateNewProject);
 }

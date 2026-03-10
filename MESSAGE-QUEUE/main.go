@@ -3,51 +3,38 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-	errorinside "github.com/HanThamarat/NOTE-PLUS-MESSAGE-QUEUE/pkg/err"
+	rabbltmq "github.com/HanThamarat/NOTE-PLUS-MESSAGE-QUEUE/internal/infrastructure/rabbitmq"
+	"github.com/HanThamarat/NOTE-PLUS-MESSAGE-QUEUE/internal/usecase"
 	pkg "github.com/HanThamarat/NOTE-PLUS-MESSAGE-QUEUE/pkg/load-env"
-	"github.com/HanThamarat/NOTE-PLUS-MESSAGE-QUEUE/pkg/rabbltmq"
 )
 
 func main() {
 	pkg.LoadEnv();
 
-	fmt.Println("hello world");
+	rabbit, err := rabbltmq.NewRabbitClient();
 
-	ch := rabbltmq.RabbitConnection();
+    if err != nil {
+        log.Fatalf("Failed to connect: %v", err)
+    }
 
-	q, err := ch.QueueDeclare(
-		"hello", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
-	);
+    defer rabbit.Close();
 
-	errorinside.FailOnError(err, "Failed to declare a queue");
+	notifyWorker := usecase.NewNotifyUsecase(rabbit);
+	projectWorker := usecase.NewProjectUsecase(rabbit);
 
-	msgs, err := ch.Consume(
-	q.Name, // queue
-	"",     // consumer
-	true,   // auto-ack
-	false,  // exclusive
-	false,  // no-local
-	false,  // no-wait
-	nil,    // args
-	)
-	
-	errorinside.FailOnError(err, "Failed to register a consumer")
+	go notifyWorker.Start();
+    go projectWorker.Start();
 
-	var forever chan struct{}
+	// Create a channel to listen for OS signals (like Ctrl+C or Docker stop)
+    stop := make(chan os.Signal, 1);
+    signal.Notify(stop, os.Interrupt, syscall.SIGTERM);
 
-	go func() {
-	for d := range msgs {
-		log.Printf("Received a message: %s", d.Body)
-	}
-	}()
+    // Wait here until a signal is received
+    <-stop
 
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	<-forever
-
+    fmt.Println("Shutting down gracefully...")
 }

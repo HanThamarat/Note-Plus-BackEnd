@@ -1,25 +1,21 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
-	"time"
 
 	"github.com/HanThamarat/Note-Plus-BackEnd/internal/domain"
 	"github.com/HanThamarat/Note-Plus-BackEnd/internal/handler"
+	"github.com/HanThamarat/Note-Plus-BackEnd/internal/infrastructure/rabbitmq"
 	"github.com/HanThamarat/Note-Plus-BackEnd/internal/repository"
 	"github.com/HanThamarat/Note-Plus-BackEnd/internal/router"
 	"github.com/HanThamarat/Note-Plus-BackEnd/internal/usecase"
 	"github.com/HanThamarat/Note-Plus-BackEnd/pkg/database"
-	errorinside "github.com/HanThamarat/Note-Plus-BackEnd/pkg/err"
 	initial "github.com/HanThamarat/Note-Plus-BackEnd/pkg/initialize"
 	pkg "github.com/HanThamarat/Note-Plus-BackEnd/pkg/load-env"
-	"github.com/HanThamarat/Note-Plus-BackEnd/pkg/rabbltmq"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 
@@ -32,6 +28,7 @@ func main() {
 		&domain.Organizations{},
 		&domain.Role{},
 		&domain.Member{},
+		&domain.Project{},
 	);
 
 	if err != nil {
@@ -41,36 +38,12 @@ func main() {
 	initial.UserInit(db);
 	initial.RoleInit(db);
 
-	ch := rabbltmq.RabbitConnection();
+	rabbit, err := rabbitmq.NewRabbitClient();
 
-	q, err := ch.QueueDeclare(
-		"hello", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
-	)
+    if err != nil {
+        log.Fatalf("Failed to connect rabbit: %v", err)
+    }
 
-	errorinside.FailOnError(err, "Failed to declare a queue");
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	for i := 0; i < 100; i++ {
-		body := "Hello World!"
-		err = ch.PublishWithContext(ctx,
-		"",     // exchange
-		q.Name, // routing key
-		false,  // mandatory
-		false,  // immediate
-		amqp.Publishing {
-			ContentType: "text/plain",
-			Body:        []byte(body),
-		})
-		errorinside.FailOnError(err, "Failed to publish a message")
-	log.Printf(" [x] Sent %s\n", body)	
-	}
 
 	// user manangement
 	userRepo 	:= repository.NewGormUserRepository(db);
@@ -92,6 +65,11 @@ func main() {
 	memberUc	:= usecase.NewMemberUsecase(memberRepo);
 	memberHdl	:= handler.NewMemberHandler(memberUc);
 
+	// project
+	projectRepo	:= repository.NewProjectRepository(db, rabbit);
+	projectUc 	:= usecase.NewProjectUsecase(projectRepo);
+	projectHdl  := handler.NewProjectHandler(projectUc);
+
 	app := fiber.New();
 	app.Use(logger.New());
 	app.Use(cors.New(cors.Config{
@@ -107,6 +85,7 @@ func main() {
 		authHdl,
 		orgHdl,
 		memberHdl,
+		projectHdl,
 	);
 
 	log.Fatal(app.Listen(os.Getenv("Port")));

@@ -18,6 +18,7 @@ type User struct {
 	DeletedAt 		gorm.DeletedAt		`gorm:"column:deleted_at;" json:"deleted_at"`
 
 	Organization 	[]Organizations		`gorm:"foreignKey:CreatedBy;references:ID" json:"createdBy"`
+	Project 		[]Project			`gorm:"foreignKey:created_by;references:ID" json:"created_by"`
 	Member			[]Member			`gorm:"foreignKey:userId;references:ID" json:"member"`
 }
 
