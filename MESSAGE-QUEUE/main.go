@@ -32,7 +32,8 @@ func main() {
     defer rabbit.Close();
 	projectWorker := usecase.NewProjectUsecase(rabbit, db);
 
-    go projectWorker.Start();
+    go projectWorker.ProjectCreateStartWorker();
+	go projectWorker.FindAllProjectByOrg();
 
 	// Create a channel to listen for OS signals (like Ctrl+C or Docker stop)
     stop := make(chan os.Signal, 1);

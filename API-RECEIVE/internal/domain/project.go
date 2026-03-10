@@ -28,8 +28,10 @@ type ProjectDTO struct {
 
 type ProjectRepository interface {
 	CreateProject(dto ProjectDTO) (*Project, error);
+	FindAllOrgProject(orgId int) (*[]Project, error);
 }
 
 type ProjectUsecase interface {
 	CreateProject(dto ProjectDTO) (*Project, error);
+	FindAllOrgProject(orgId int) (*[]Project, error);
 }

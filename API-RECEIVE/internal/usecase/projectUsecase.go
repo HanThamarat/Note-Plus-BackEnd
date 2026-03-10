@@ -13,3 +13,7 @@ func NewProjectUsecase(r domain.ProjectRepository) domain.ProjectUsecase {
 func (u *projectUsecase) CreateProject(dto domain.ProjectDTO) (*domain.Project, error) {
 	return u.repo.CreateProject(dto);
 }
+
+func (u *projectUsecase) FindAllOrgProject(orgId int) (*[]domain.Project, error) {
+	return u.repo.FindAllOrgProject(orgId);
+}

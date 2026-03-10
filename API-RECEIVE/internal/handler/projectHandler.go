@@ -60,3 +60,33 @@ func (h *ProjectHandler) CreateNewProject(c *fiber.Ctx) error {
 		result,
 	);
 }
+
+func (h *ProjectHandler) FindAllProjectByOrg(c *fiber.Ctx) error {
+	orgId, err := c.ParamsInt("id");
+	if err != nil {
+		return responses.SetErrResponse(
+			c,
+			422,
+			"Finding all projects by org failed.",
+			err.Error(),
+		);
+	}
+
+	result, err := h.usecase.FindAllOrgProject(orgId);
+
+	if err != nil {
+		return responses.SetErrResponse(
+			c,
+			fiber.StatusBadRequest,
+			"Finding all projects by org failed.",
+			err.Error(),
+		);
+	}
+
+	return responses.SetResponse(
+		c,
+		fiber.StatusOK,
+		"Finding all projects by org successfully.",
+		result,
+	);
+}

@@ -49,4 +49,5 @@ func SetupRoutes(
 	// project service
 	projectGroup := router.Group("/project_service");
 	projectGroup.Post("/project", projectHdl.CreateNewProject);
+	projectGroup.Get("/org_projects/:id", projectHdl.FindAllProjectByOrg);
 }
