@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/HanThamarat/NOTE-PLUS-MESSAGE-QUEUE/internal/domain"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -34,28 +35,41 @@ func NewRabbitClient() (*RabbitClient, error) {
     return &RabbitClient{Conn: conn, Channel: ch}, nil
 }
 
-func (r *RabbitClient) Consume(queueName string) (<-chan []byte, error) {
+func (r *RabbitClient) Consume(queueName string) (<-chan domain.Message, error) {
     // 1. Ensure queue exists
     q, err := r.Channel.QueueDeclare(queueName, true, false, false, false, nil)
     if err != nil {
         return nil, err
     }
 
-    // 2. Start consuming
-    msgs, err := r.Channel.Consume(q.Name, "", true, false, false, false, nil)
+    msgs, err := r.Channel.Consume(q.Name, "", false, false, false, false, nil)
     if err != nil {
         return nil, err
     }
 
-    // 3. Convert AMQP Delivery channel to a simple byte channel
-    out := make(chan []byte)
+    out := make(chan domain.Message)
     go func() {
         for d := range msgs {
-            out <- d.Body
+            out <- domain.Message{
+                Body:          d.Body,
+                ReplyTo:       d.ReplyTo,
+                CorrelationId: d.CorrelationId,
+            }
+
+			d.Ack(false);
         }
+		close(out);
     }()
 
     return out, nil
+}
+
+func (r *RabbitClient) Publish(queueName string, correlationId string, body []byte) error {
+    return r.Channel.Publish("", queueName, false, false, amqp.Publishing{
+        ContentType:   "application/json",
+        CorrelationId: correlationId,
+        Body:          body,
+    })
 }
 
 func (r *RabbitClient) Close() error {

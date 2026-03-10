@@ -2,7 +2,6 @@ package domain
 
 import (
 	"time"
-
 	"gorm.io/gorm"
 )
 
@@ -24,14 +23,4 @@ type ProjectDTO struct {
 	Status 			bool				`json:"status"`	
 	UserId			*uint				`json:"user_id"`
 	OrgId			uint				`json:"org_id"`
-}
-
-type ProjectRepository interface {
-	CreateProject(dto ProjectDTO) (*Project, error);
-	FindAllOrgProject(orgId int) (*[]Project, error);
-}
-
-type ProjectUsecase interface {
-	CreateProject(dto ProjectDTO) (*Project, error);
-	FindAllOrgProject(orgId int) (*[]Project, error);
 }

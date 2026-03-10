@@ -16,7 +16,8 @@ type Organizations struct {
   	UpdatedAt 		time.Time			`gorm:"column:updated_at;" json:"updated_at"`
 	DeletedAt 		gorm.DeletedAt		`gorm:"column:deleted_at;" json:"deleted_at"`
 
-	Member			[]Member			`gorm:"foreignKey:orgId;references:ID" json:"member"`
+	Member			[]Member			`gorm:"foreignKey:orgId;references:ID"  json:"member"`
+	Project			[]Project			`gorm:"foreignKey:org_id;references:ID" json:"project"`
 }
 
 type OrgDTO struct {
