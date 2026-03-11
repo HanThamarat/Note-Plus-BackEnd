@@ -48,14 +48,16 @@ func (r *RabbitClient) Publish(queueName string, body []byte) error {
 }
 
 func (r *RabbitClient) Call(queueName string, body []byte) ([]byte, error) {
-    q, err := r.Channel.QueueDeclare("", false, true, true, false, nil)
+    q, err := r.Channel.QueueDeclare("", false, true, true, false, nil);
     if err != nil {
-        return nil, err
+        return nil, err;
     }
+	
+	defer r.Channel.QueueDelete(q.Name, false, false, false);
 
-    msgs, err := r.Channel.Consume(q.Name, "", true, false, false, false, nil)
+    msgs, err := r.Channel.Consume(q.Name, "", true, false, false, false, nil);
     if err != nil {
-        return nil, err
+        return nil, err;
     }
 
     corrId := uuid.New().String();
@@ -65,7 +67,7 @@ func (r *RabbitClient) Call(queueName string, body []byte) ([]byte, error) {
         CorrelationId: corrId,
         ReplyTo:       q.Name,
         Body:          body,
-    })
+    });
 
     for d := range msgs {
         if d.CorrelationId == corrId {
@@ -73,7 +75,7 @@ func (r *RabbitClient) Call(queueName string, body []byte) ([]byte, error) {
         }
     }
 
-    return nil, fmt.Errorf("failed to receive response")
+    return nil, fmt.Errorf("failed to receive response");
 }
 
 func (r *RabbitClient) Close() error {
