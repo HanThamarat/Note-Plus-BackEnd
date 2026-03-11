@@ -7,6 +7,7 @@ import (
 	"github.com/HanThamarat/Note-Plus-BackEnd/pkg/responses"
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 )
 
 func SetupRoutes(
@@ -20,6 +21,9 @@ func SetupRoutes(
 	app.Get("/", func (c *fiber.Ctx) error {
 		return responses.SetResponse(c, fiber.StatusOK, "Server is runing", nil); 
 	});
+
+	app.Get("/metrics", monitor.New());
+	app.Get("/metrics", monitor.New(monitor.Config{Title: "MyService Metrics Page"}))
 
 	router := app.Group("/api/v1");
 
